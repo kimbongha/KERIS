@@ -5,7 +5,7 @@
 
 교재 : Do it! 쉽게 배우는 R 데이터 분석
 
-![](http://image.yes24.com/Goods/43868089/800x0)
+![](http://image.yes24.com/Goods/43868089/800x0){40%}
 
 # 일정안내
 ----
