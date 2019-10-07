@@ -1,0 +1,192 @@
+---
+title: "R data science 3"
+author: "Sanghoo Yoon"
+date: "2019년 10월 8일"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R 데이터 분석 기초 3
+
+지금까지 dplyr팩키지는 %>% 를 이용하여 데이터를 핸들링하는 방법을 배웠다.
+
+다시 한번 이야기 하지만 R에서 중요한 부분은 4가지이다.
+
+1. 데이터, 결과, 그림 등의 저장 및 활용
+
+2. 다양한 함수()
+
+3. 함수가 실행되지 않은 경우 package를 이용한 설치 후 library로 로드
+
+4. 데이터의 인덱싱, 중괄호 사용[]
+
+오늘은 merge, rbind를 이용한 데이터 합치는 방법과 데이터를 정제하는 방법을 배운다.
+
+
+## 1. 파일 합치기
+
+![](https://www.dummies.com/wp-content/uploads/326772.image0.jpg)
+
+### merge()함수 : 끼워넣기
+
+임의의 데이터 를 생성해보자. 
+
+```{r}
+test1 <- data.frame(id = c(1, 2, 3, 4, 5), midterm = c(60, 80, 70, 90, 85)) 
+test2 <- data.frame(id = c(4, 5, 2, 3, 6), final = c(70, 83, 65, 95, 80))
+```
+
+* 위의 자료를 합쳐보자.
+
+R에서는 cbind() 함수가 있는데, 이는 옆에 자료를 합칠 수 있다.
+
+```{r}
+temp <- cbind(test1, test2)
+temp
+```
+
+하지만 이 결과가 우리가 원하는 결과는 아니다.
+
+id를 기준으로 자료를 합치고 싶다면 **merge** 함수를 이용하자.
+
+merge는 합치고자 하는 데이터셑 2개를 입력 후 by에 기준이 되는 변수를 설정해주면 된다.
+
+```{r}
+test <- merge(test1, test2, by="id")
+test
+```
+
+그냥 merge를 사용하면 두개의 데이터 셋 중 겹치는 것만 생성된다.
+
+![](http://mblogthumb2.phinf.naver.net/MjAxNzAzMDlfMjcz/MDAxNDg5MDQxNzQ3NTg5.x6HH0cDt6bLVLrz_pjuY3Wc1z1JBoIOu-LnP2YayJqog.5DjMuwF3U6BVkQIKvemzCYKwpmgJioLQ9Grf41TV_SAg.JPEG.coder1252/image_6859473251489041709791.jpg?type=w800)
+
+위 그림처럼 merge함수에 all, all.x, all,y 를 조정함으로써 자료를 원하는데로 생성할 수 있다.
+
+이때 없는 자료는 NA 즉 결측치로 생성된다.
+
+```{r}
+(merge(test1, test2, by="id", all=TRUE))
+(merge(test1, test2, by="id", all.x=TRUE))
+```
+
+만약 기준이 되는 변수의 명이 다르다면??
+
+```{r}
+test1 <- data.frame(id = c(1, 2, 3, 4, 5), midterm = c(60, 80, 70, 90, 85)) 
+test2 <- data.frame(no = c(4, 5, 2, 3, 6), final = c(70, 83, 65, 95, 80))
+```
+
+- dplyr의 rename을 통해 동일한 이름으로 변경한다.
+
+- by.x, by.y를 통해 끼워넣기를 직접 실행할 수 있다.
+
+- merge(test1, test2, by.x="id", by.y="no")
+
+### rbind() 함수 : 아래에 자료 추가하기
+
+1반과 2반의 학생별 점수가 있다고 하자.
+
+이제 모든 반을 합쳐서 성적을 평가하고 싶다. 이 경우 rbind()를 사용한다.
+
+```{r}
+test1 <- data.frame(id = c(1, 2, 3, 4, 5), midterm = c(60, 80, 70, 90, 85), class = rep(1,5)) 
+test2 <- data.frame(id = c(1, 2, 3, 4, 5), midterm = c(70, 83, 65, 95, 80), class = rep(2,5)) 
+
+test <- rbind(test1, test2)
+test
+```
+
+이때 주의해야 할 사항은 rbind 하려는 자료의 변수의 이름이 동일해야 한다.
+
+만약 아래와 같이 test1은 id, midterm, class이고 test는 id, final, class로 되어 있다면 rbind가 실행되지 않고 오류가 발생한다.
+
+이 경우 names 함수를 이용하여 합치려는 자료의 변수 이름을 동일하게 설정하자.
+
+* 이 경우 자료가 동일한 순서로 생성되어 있는지 다시 한번 더 확인하자.
+
+```{r}
+test1 <- data.frame(id = c(1, 2, 3, 4, 5), midterm = c(60, 80, 70, 90, 85), class = rep(1,5)) 
+test2 <- data.frame(id = c(1, 2, 3, 4, 5), final = c(70, 83, 65, 95, 80), class = rep(2,5)) 
+
+# test <- rbind(test1, test2)  error  발생
+names(test1)
+names(test2) <- names(test1)
+test <- rbind(test1, test2)  
+test
+```
+
+## 도전 1
+
+1. 공시자료를 가져와 초등학교정보와 학급수, 학생수를 합쳐보자. 
+
+2. 학생수와 학급 수에 ()소괄호가 있어 str_extract())함수로 숫자추출하였다.
+
+3. select, group_by, filter를 이용하면 시도교육별 가장 학급수가 많은 학교, 학생수가 큰 학교를 확인 수 있다.
+
+4. 학생수에 조건을 준다면 위기의 학교를 찾을 수 있다.
+
+5. map()함수를 이용하면 지도위에 관심 학교의 위치를 확인 할 수 있다.
+
+```{r}
+library(readxl)
+library(dplyr)
+library(stringr)
+
+data1 <- read.csv("F:/work/R-work/2019/KERIS/day4/2019년_공시대상학교정보(전체).csv")
+data2 <- read_excel("F:/work/R-work/2019/KERIS/day4/2019년 2차_학교현황-학급수(전체).xlsx", sheet=2) #초등학교
+
+names(data1)
+names(data2)
+data2$학급수 <- as.numeric(str_extract(data2$학급수계, "\\d++"))
+data2$학생수 <- as.numeric(str_extract(data2$학생수계, "\\d++"))
+
+p.data1 <- merge(data1, data2, by.x="정보공시.학교코드", by.y="정보공시 \n 학교코드")
+
+names(p.data1)
+table(p.data1$시도교육청.x)
+
+# 시도교육청 별로 학급수가 가장 많은 초등학교는
+p.data1 %>% select(시도교육청.x, 학교명.x, 학급수, 위도, 경도) %>% group_by(시도교육청.x) %>% filter(학급수==max(학급수))
+p.data1 %>% select(시도교육청.x, 학교명.x, 학생수, 위도, 경도) %>% group_by(시도교육청.x) %>% filter(학생수==max(학생수))
+p.data1 %>% select(시도교육청.x, 학교명.x, 학생수, 위도, 경도) %>% group_by(시도교육청.x) %>% filter(학생수==min(학생수))
+p.data1 %>% select(시도교육청.x, 학교명.x, 학생수, 위도, 경도) %>% group_by(시도교육청.x) %>% filter(학생수<10) %>%  summarise(count=n())
+
+out1 <- p.data1 %>% select(시도교육청.x, 학교명.x, 학생수, 위도, 경도) %>% group_by(시도교육청.x) %>% filter(학생수<5)
+
+out1$위도[out1$위도>100]
+out1$위도[out1$위도>100]=out1$위도[out1$위도>100]/10000
+out1$위도
+
+out1$경도[out1$경도>1000]=out1$경도[out1$경도>1000]*0.01
+out1$경도
+
+library(maps)
+map('world','South Korea')
+points(out1$경도, out1$위도, pch=16, col="red")
+```
+
+### 문제 : 중학교 학생 수가 50 미만인 학교는 어느 지역교육청에 많은 가요?
+
+```{r echo=FALSE, message=FALSE}
+data1 <- read.csv("F:/work/R-work/2019/KERIS/day4/2019년_공시대상학교정보(전체).csv")
+data2 <- read_excel("F:/work/R-work/2019/KERIS/day4/2019년 2차_학교현황-학급수(전체).xlsx", sheet=3) #초등학교
+
+# names(data1)
+# names(data2)
+data2$학급수 <- as.numeric(str_extract(data2$학급수계, "\\d++"))
+data2$학생수 <- as.numeric(str_extract(data2$학생수계, "\\d++"))
+
+p.data1 <- merge(data1, data2, by.x="정보공시.학교코드", by.y="정보공시 \n 학교코드")
+
+# names(p.data1)
+
+# 시도교육청 별로 학급수가 가장 많은 초등학교는
+p.data1 %>% select(시도교육청.x, 지역교육청.x, 학교명.x, 학생수, 위도, 경도) %>% 
+  group_by(지역교육청.x) %>% 
+  filter(학생수<50) %>%  
+  summarise(count=n()) %>% 
+  filter(count==max(count))
+```
