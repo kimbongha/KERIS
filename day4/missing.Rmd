@@ -1,0 +1,142 @@
+---
+title: "Missing"
+author: "Sanghoo Yoon"
+date: "2019년 10월 8일"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+* read.csv함수를 통한 데이터 로딩
+
+* head()함수를 이용하여 상위 6개 확인
+
+* names() 함수 변수명 확인 
+
+* str() 데이터의 구조 확인
+
+```{r}
+df<-read.csv("F:/work/R-work/2019/KERIS/day4/실습데이터.csv")
+
+head(df)
+#변수명 확인
+
+#변수명 새로운 이름으로 할당
+names(df)<-c("loc","date","temp","rain","ws","wd","humidity","cloud")
+
+#구조 확인
+str(df)
+
+#데이터 형태의 변경
+df$loc<-as.factor(df$loc)
+df$date<-as.Date(df$date)
+df$wd<-as.factor(df$wd)
+df$cloud<-as.factor(df$cloud)
+```
+
+* 자료에 결측치가 있는지 확인하기 위해선 is.na()함수를 사용하자.
+
+* 결측치가 자료의 10% 미만인 경우에는 결측치를 제거한 데이터로 자료를 분석한다.
+
+* 만약 결측치가 10~40% 된다면?? imputation 방법을 통해 결측치를 대체하여 분석한다.
+
+```{r}
+#NA(Not available);결측인지 아닌지 확인
+head(is.na(df))
+
+#R에서는 TRUE에 해당하는 값만 추출
+#!는 not의 의미
+
+#데이터중 전운량이 결측이 아닌값만 추출
+head(df[!is.na(df$cloud),])
+
+#complete.cases를 통해 변수중 하나라도 결측이 아닌값들만 추출
+head(df[complete.cases(df),])
+```
+
+- []대괄호는 자료의 index 즉 순서를 의미한다. 자료가 data.frame의 구조라면 [행,열]을 선택하면 된다.
+
+즉, df[!is.na(df$cloud),]는 df %>% filter(!is.na(cloud))와 같다.
+
+- 결측치가 제거된 자료를 사용하고자 하는 경우에는 결과를 data2<-df[!is.na(df$cloud),] 처럼 꼭 할당해두자.
+
+- 이 외 시각적인 방법을 통해 이상치를 발견하는 방법은?
+
+
+```{r}
+library(mice)
+library(VIM)
+
+#결측의 패턴을 표로 확인
+md.pattern(df)
+
+#결측의 패턴을 시각화로 확인
+aggr(df)
+
+
+#이상치 있는 데이터 생성(temp 300)
+df2<-data.frame(id=c(1,2,3,4,5), temp=c(20,30,40,50,300))
+
+#시각화를 통한 이상치의 발견
+boxplot(df2$temp)
+plot(df2$id, df2$temp)
+```
+
+이제 knn방법을 통해 결측치를 보정하는 방법을 알아보자.
+
+iris 자료를 불러와 NA를 추가시켜보자.
+
+```{r}
+iris_na <- iris
+iris_na[c(10, 20, 25, 40, 32), 3] <- NA
+iris_na[c(33, 100, 123), 1] <- NA
+iris_na[!complete.cases(iris_na), ]
+
+md.pattern(iris_na)
+```
+
+이제 중앙값을 찾아보자. 평균값으로 대체 해도 된다.
+
+```{r}
+median(iris_na[,1], na.rm=T)
+median(iris_na[,2], na.rm=T)
+median(iris_na[,3], na.rm=T)
+median(iris_na[,4], na.rm=T)
+```
+
+계산된 중앙값을 결측치 값에 직접 입력하면 된다.
+
+여기서 [행,열] : 행에서는 결측치를 선택하고, 열에서는 입력하려는 변수를 입력하자.
+
+```{r}
+iris_na2 <- iris_na
+
+iris_na[is.na(iris_na[,1]),1]=median(iris_na[,1], na.rm=T)
+iris_na[is.na(iris_na[,3]),3]=median(iris_na[,3], na.rm=T)
+
+md.pattern(iris_na)
+```
+
+DMwR 팩키지를 이용하면 조금 더 쉽게 할 수 있다. 
+
+centralImpuation()는 중앙값으로 결측치를 대체하고
+
+knnImputation()는 k 최근 이웃 분류 알고리즘을 사용해 k개 근접 이웃 값의 가중 평균으로 대체한다.
+
+이 외에도 여러 방법들이 있다. 
+
+```{r}
+library(DMwR)
+iris_na2[!complete.cases(iris_na2), ]
+
+iris_na[!complete.cases(iris_na), ]
+which(!complete.cases(iris_na2))
+
+centralImputation(iris_na2[1:4]) # 결측치를 중앙값으로 대체 
+
+centralImputation(iris_na2[1:4])[which(!complete.cases(iris_na2)), ] # 결측치만 선택하여 확인
+
+knnImputation(iris_na[1:4])[which(!complete.cases(iris_na2)), ]
+```
