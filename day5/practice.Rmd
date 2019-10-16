@@ -1,0 +1,367 @@
+---
+title: "Practice"
+author: "Sanghoo Yoon"
+date: "2019년 10월 16일"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 한국복지패널데이터' 분석
+
+## 한국복지패널데이터
+
+* 한국보건사회연구원 발간
+
+* 가구의 경제활동을 연구해 정책 지원에 반영할 목적
+
+* 2006~2015년까지 전국에서 7000여 가구를 선정해 매년 추적 조사
+
+* 경제활동, 생활실태, 복지욕구 등 수천 개 변수에 대한 정보로 구성
+
+* 현재 2019년 제 14차 한국복지패널조사 진행중
+
+[한국복지패널데이터](https://www.koweps.re.kr:442/main.do)
+
+* 이외에도 [한국고용정보원 고용조사분석정보](https://survey.keis.or.kr/), [한국문화관광연구원 관광지식정보시스템](https://policydb.kcti.re.kr/#/) 등에서 
+조사한 자료들을 사용자가 쉽게 분석할 수 있도록 공개
+
+## 데이터 분석 준비하기 
+
+* 한국보건사회연구원에서 제공하는 데이터는  stata, SPSS, SAS 형태로 제공
+
+* SPSS 파일을 R에서 불러오기 위해선 ```foreign``` 패키지가 필요합니다.
+
+* ```use.value.labels = FALSE```을 사용하여 SPSS에 입력된 코딩 값만 불러오자.
+
+* 위의 옵션을 주지 않으면 라발값에 입력되어 분석에 어려움이 있다. 
+
+* 추가로 파일에 한글이 있는 경우 ```reencode='utf-8'```를 설정해야한다.
+
+* 한국복지패널자료는 [Koweps_etc](http://bit.ly/Koweps_etc) 에서 다운 받아서 사용하시면 됩니다.
+
+* 용량관계로 github에 올리지 못했습니다.
+
+```{r message=FALSE}
+library(foreign) 
+library(dplyr) 
+library(ggplot2)
+
+raw_welfare <- read.spss(file = "F:/work/2018/7. 발표/R_beginner-master/data/survey_data_2015.sav", to.data.frame = T, 
+                         reencode='utf-8')
+
+raw_welfare <- read.spss(file = "F:/work/2018/7. 발표/R_beginner-master/data/survey_data_2015.sav", to.data.frame = T, 
+                         use.value.labels = FALSE, reencode='utf-8')
+
+raw_welfare <- read.spss(file = "F:/work/R-work/2019/KERIS/day5/데이터/Koweps_hpc10_2015_beta1.sav",
+                         to.data.frame = T, reencode='utf-8')
+
+# 복사본 만들기 
+welfare <- raw_welfare
+```
+
+* 파일을 불러온 다음 꼭 해야할 일은 데이터 검토이다.
+
+```
+행과 열의 수는?
+```
+
+```{r, eval=FALSE}
+head(welfare)
+tail(welfare)
+dim(welfare)
+str(welfare)
+summary(welfare)
+```
+
+* 많은 양의 데이터는 변수가 많고 변수명이 코드로 되어 있어 전체 데이터 구조를 한눈에 파악하는데 어려움이 있다.
+
+* 이 경우 변수명을 쉬운 단어로 바꾼 후 분석에 사용할 변수를 파악해야 한다.
+
+* 설문지를 통해 각 문항이 어떻게 구성되어 있는지 확인해보자.
+
+```
+rename함수이 이용하여 변수명을 변경하세요.
+
+sex = h10_g3, # 성별
+irth = h10_g4, # 태어난 연도 
+marriage = h10_g10, # 혼인 상태 
+religion = h10_g11, # 종교 
+income = p1002_8aq1, # 월급 
+code_job = h10_eco9, # 직종 코드 
+code_region = h10_reg7) # 지역 코드
+```
+
+* rename함수로 변경하신 분은 `select`와 `head`를 ```%>%```로 연결하여 잘 변경되었는지 확인하세요.
+
+```{r echo=FALSE}
+welfare <- rename(welfare, sex = h10_g3, # 성별 
+                  birth = h10_g4, # 태어난 연도 
+                  marriage = h10_g10, # 혼인 상태 
+                  religion = h10_g11, # 종교 
+                  income = p1002_8aq1, # 월급 
+                  code_job = h10_eco9, # 직종 코드 
+                  code_region = h10_reg7) # 지역 코드
+
+welfare %>% select(sex, birth, marriage, religion, income, code_job, code_region) %>% head
+```
+
+## 데이터 분석 절차
+
+* 1단계 : 변수 검토 및 전처리
+
+* 2단계 : 변수 간 관계 분석
+
+![](g:/01.png)
+
+### 성별에 따라 월급이 다를까?
+
+* 관련 변수 : 성별(sex), 수입(income
+* 요약표 및 그래프 그리기
+
+1. 변수 검토하기
+
+    + class함수 통해 수치형(numeric)인지 문자형(character)인지 확인하자.
+    
+    + table함수를 통해 빈도를 확인해보자.
+    
+    + 성별에 1,2외에 다른 데이터가 있으면 데이터를 검토 후 분석해야하기 때문이다.
+    
+    + 만약, 이상치가 있으면 ifelse()함수를 이용하여 결측 처리하자. 
+    
+    + income은 범주형 자료가 아닌 연속형 자료이므로 summary()로 자료를 확인하자.
+    
+![](http://mblogthumb2.phinf.naver.net/MjAxODA0MjRfMjQw/MDAxNTI0NTQ4Nzc2MzI3._6NOKRxctt_qCXfWea674cXIlav4R5XaDJFm6bffrAYg.2krvICIhJaAWM4DtzTh4R3m--zAojQqdwGPp4H_Sk50g.JPEG.nisekim/%EB%B2%94%EC%A3%BC%ED%98%95%EC%9E%90%EB%A3%8C%EC%99%80_%EC%97%B0%EC%86%8D%ED%98%95_%EC%9E%90%EB%A3%8C_%EA%B7%B8%EB%A6%BC.JPG?type=w800)    
+
+```{r}
+class(welfare$sex)
+class(welfare$income)
+
+table(welfare$sex)
+summary(welfare$income)
+
+table(is.na(welfare$sex))
+table(is.na(welfare$income))
+```
+
+* 수입의 경우 결측치가 12030으로 수입이 있는 사람에 비해 3배 정도 많음을 알 수 있다. 
+
+* 이는 분석 결과에 영향을 미칠 수 있으므로 분석결과 해석에 주의하자.
+
+
+범주형 자료의 시각화는 barplot(),연속형자료는 boxplot() 또는 hist()가 사용된다. 
+
+```{r}
+barplot(table(welfare$sex))
+boxplot(welfare$income)
+hist(welfare$income)
+```
+
+2. 평균표 만들기
+* filter로 na를 제거하고 성별(group_by)에 따라 평균 수입을 summarise를 이용해서 만들어 보자.
+
+* 생성된 결과는 gender_income으로 저장하세요.
+
+```{r echo=FALSE}
+welfare %>% 
+  filter(!is.na(income)) %>% 
+  group_by(sex) %>% summarise(mean_income = mean(income))
+```
+
+> 추가분석 : 수입(income)이 700이 넘는 사람을 제외한 성별 월급 평균표는?
+
+```{r echo=FALSE}
+gender_income<-welfare %>% 
+  filter(!is.na(income) & income<=700) %>% 
+  group_by(sex) %>% summarise(mean_income = mean(income))
+```
+
+* barplot을 이용한 시각화 
+
+```{r}
+b1<-barplot(gender_income$mean_income, names.arg =c("Male", "Female"), col=c("cadetblue","darkorange"))
+text(b1, gender_income$mean_income, labels=round(gender_income$mean_income,2), pos=1, offset = 2, cex=2, col="white")
+```
+
+### 나이와 월급의 관계는?
+
+* 관련 변수 : 나이(birth), 수입(income)
+
+* 요약표 및 그래프 그리기
+    
+    + 추가변수 생성 : welfare$age=2015-welfare$birth +1
+    
+    + hist()함수로 히스토그램 그리기
+    
+    + is.na()함수를 이용하여 결측치가 있는지 확인하기
+    
+```{r echo=FALSE}
+welfare$age = 2015-welfare$birth +1
+hist(welfare$age)
+table(is.na(welfare$age))
+```
+
+* 이제 나이에 따른 월급표를 만들어 보겠습니다.
+
+    + income 중 결측치 제거하기
+    
+    + 그룹변수 설정하기 : age
+    
+    + 결과를 age_income으로 할당하기
+```{r echo=FALSE}
+welfare %>% filter(!is.na(income)) %>% 
+         group_by(age) %>% summarise(mean_income = mean(income))
+age_income<-welfare %>% filter(!is.na(income)) %>% 
+         group_by(age) %>% summarise(mean_income = mean(income))
+```
+
+* barplot함수를 통해 위의 결과를 시각화 하면 아래와 같습니다.
+
+* 또한 arrange와 head를 ```%>%```로 연결하면 월급이 많은 연령을 확인할 수 있다. 
+
+```{r}
+barplot(age_income$mean_income, names.arg=age_income$age, col="cornsilk2")
+
+age_income %>% arrange(desc(mean_income)) %>% head
+```
+
+### 연령대와 월급의 관계는?
+
+* 관련변수 : 나이 (age), 수입(income)
+
+> ~29 : Young
+
+> 30~49 : adult
+
+> 50~ : senior
+
+* 위의 기준으로 나이를 연령대로 바꿔 age_group으로 저장해보자.
+
+* ```ifelse``` 함수를 사용하면 된다.
+
+* 생성된 자료를 table함수로 빈도도 확인해보자.
+
+```{r echo=FALSE}
+welfare$age_group <- ifelse(welfare$age < 30, "young", ifelse(welfare$age <= 59, "adult", "senior"))
+table(welfare$age_group)
+```
+
+* 이제 연령대별 평균 월급을 계산해보자.
+
+```{r}
+age_group<-welfare %>% filter(!is.na(income)) %>% 
+         group_by(age_group) %>% summarise(mean_income = mean(income))
+
+age_group
+
+b1<-barplot(age_group$mean_income, names.arg=age_group$age_group, col="cornsilk2")
+text(b1, age_group$mean_income, labels=round(age_group$mean_income,2), pos=1, cex=1.5)
+```
+
+### 연령대 및 성별 월급 차이를 분석한다면?
+
+```{r}
+sex_income <- welfare %>% filter(!is.na(income)) %>%
+        group_by(age_group, sex) %>%
+        summarise(mean_income = mean(income))
+
+sex_income
+```
+
+### 직업별 월급에는 차이가 있을까?
+
+* 관련변수 : 직업(code_job), 월급(income)
+
+* table()함수를 통해 직업의 빈도를 확인해보자.
+
+```{r}
+table(welfare$code_job)
+```
+
+* 불러온 자료에는 코드만 있고 직업이 표시되있지 않습니다.
+
+* 직업은 설문지를 살펴보거나 ```Koweps_Codebook.xlsx``` 파일의 두번째 시트에 있습니다.
+
+```{r}
+library(readxl) 
+list_job <- read_excel("F:/work/R-work/2019/KERIS/day5/Koweps_Codebook.xlsx", col_names = T, sheet = 2) 
+head(list_job)
+```
+
+* 이제 ```merge``` 함수를 이용해서 직업코드에 직업명을 추가시키겠습니다.
+
+```{r}
+job_income <- welfare %>%
+  filter(!is.na(code_job) & !is.na(income)) %>% 
+  group_by(code_job) %>% 
+  summarise(mean_income = mean(income)) %>% 
+  arrange(desc(mean_income))
+
+job_income2 <- merge(job_income, list_job, by="code_job")
+
+head(job_income2)
+```
+
+이 결과를 barplot으로 그려보면
+
+```{r}
+barplot(job_income2$mean_income, names.arg=job_income2$job, horiz= T, col="chocolate2", las=2, cex.names = 0.7)
+```
+
+* 평균 월급이 500만원이 넘는 직업은??
+
+* 평균 월급이 낮은 10개의 직업은?
+
+### 종교 유무에 따라 이혼이 영향 받을까?
+
+* 관련변수 : 종교유무(religion), 결혼(marriage)
+
+* welfare$marrige를 빈도분석하면 다음과 같다.
+
+```{r}
+library(knitr)
+kable(table(welfare$marriage))
+```
+
+* 설문지를 보면 1은 결혼상태이고 3은 이혼이므로 1,3을 제외한 나버지를 NA(결측치) 처리해보자.
+
+```{r}
+welfare$group_marriage <- ifelse(welfare$marriage == 1, "marriage", ifelse(welfare$marriage == 3, "divorce", NA))
+
+table(welfare$group_marriage)
+```
+
+* 이제 생성된 group_marriage를 이용해서 종교 유무에 따른 이혼율을 분석하자.
+
+```{r}
+religion_marriage <- welfare %>% 
+  filter(!is.na(group_marriage)) %>% 
+  group_by(religion, group_marriage) %>% 
+  summarise(n = n()) %>% 
+  mutate(tot_group = sum(n)) %>% 
+  mutate(pct = round(n/tot_group*100, 1))
+
+religion_marriage
+```
+
+* 참고로 이 자료는 두개의 범주형자료이므로 **교차검증** 을 통해 통계적 가설검정이 이루어진다.
+
+### 노년층이 많은 지역은 어디일까요?
+
+* 관련변수 : 지역(code_region)
+
+* code_region은 숫자가 있어 지역명을 확인하기 어렵다.
+
+```
+list_region <- data.frame(code_region = c(1:7), 
+region = c("서울", "수도권(인천/경기)", "부산/경남/울산", "대구/경북", "대전/충남", "강원/충북", "광주/전남/전북/제주도"))
+```
+
+이제 merge를 이용해서 분석을 수행하면 된다.
+
+
+
+
+
