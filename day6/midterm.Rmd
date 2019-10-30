@@ -1,0 +1,120 @@
+---
+title: "KERIS ACADEMY 중간평가"
+author: "Sanghoo Yoon"
+date: "2019년 10월 23일"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R은 계산기의 기능을 가지고 있습니다. 
+
+  * R 콘솔창에 ```sin(pi/4)```를 넣으면 $sin({\pi \over 4})$인 `r round(sin(pi/4),3)`를 구할 수 있습니다. 
+     
+  * 또한 <- 와 = 를 이용하여 원하는 이름에 결과를 저장시켜 언제든지 불러 올 수 있습니다.
+    
+  * seq(1,100,3)을 사용하면 원하는 범위 내의 값들을 순서대로 생성할 수 있습니다.
+    
+```{r}
+  ans <-(3+4^2 + exp(-5))/(sqrt(3^2/2+5^2/5))
+  ans 
+```
+
+
+1. 위의 성질을 이용해서 다음 문제를 풀어보세요.
+
+    + $a = ln(1503)$ 
+
+    + $b = {{1} \over {\sqrt(0.13)}}$
+    
+    + 반지름이 r인 원의 둘레 길이는 $2 \pi r$로 계산됩니다. 그럼 반지름이 13인 원의 둘래는?
+    
+    + 1부터 100까지 7의 배수의 합은?
+    
+    + 포아송분포의 확률질량함수 $f(x) = {{\lambda^x \exp(-\lambda)} \over x!}$로 계산됩니다. $\lambda$는 5이고 $x$는 1일 때 $f(x)$는?
+   
+* 참고로 마지막 문제는 한달에 평균적으로 5건의 교통사고가 발생하는 교차로에서 한달에 1건의 교통사고가 발생될 확률을 계산하는 방법입니다.
+   
+## data.frame은 R 데이터의 기본 구조입니다.
+
+ * 여러개의 숫자 또는 문자로 구성된 벡터는 c()함수를 이용하여 생성합니다.
+ 
+ ``` 
+   name <- c("김지훈","이유진","박동현")
+ ```
+ 
+ * 숫자와 문자의 벡터를 하나의 스프레드시트 형식으로 합친 형태가 data.frame입니다.
+ 
+ * 따라서 데이터프레임은 행과 열로 구성되어 있습니다.
+ 
+ 
+2. 새로운 데이터프레임 exam2를 만드세요.
+
+```{r echo=FALSE}
+xNum <- c(1,3,5,7)
+xLog <- c(TRUE,TRUE,FALSE,TRUE)
+xChar <- c("a","b","c","d")
+exam2 <- data.frame(xNum, xLog, xChar)
+library(knitr)
+kable(exam2, align='c')
+```
+ 
+## R에서 데이터를 불러오면 확인이 필요합니다.
+
+ * excel, txt, spss 등 에서 작업하던 파일을 R에서 불러올 경우 데이터가 R에 로드가 잘되었는지 확인이 필요합니다.
+ 
+ * 이때 주로 사용하는 함수가 dim(), head(), tail(), str(), summary(), View()입니다.
+ 
+ * 또한 논리식 조건을 ```dplyr``` 패지키의 ``` %>% ```로 연결하면 원하는 데이터만 쉽게 찾을 수 있습니다.
+ 
+ * rename, filter, select, mutate, group_by, summarise 를 ``` %>% ```로 연결하면 결과를 쉽게 도출할 수 있습니다. 
+ 
+ * 위의 내용을 참고하여 아래의 문제를 풀어주세요.
+ 
+3. 아래의 코드를 실행 후 문제를 풀어주세요.
+
+```{r}
+library(datasets)
+exam3 <- data.frame(EuStockMarkets)
+head(exam3)
+```
+
+* exam3 자료를 불러와 아래문제를 푸세요.
+    
+    + exam3은 몇개의 행과 열로 구성되어 있나요?
+     
+    + exam3의 마지막 15개를 출력하세요.
+    
+    + DAX의 평균, SMI의 중앙값, CAC의 최소값, FTSE의 최대값은?
+    
+    + DAW>6000 또는 SMI>6000인 자료를 뽑아 exam3_1으로 저장시키세요.
+    
+    + DSC = (DAX+SMI+CAC)/3이라고 합니다. DSC가 5000보다 크면 A, 4000보다 크면 B, 그렇지 않으면 C라고 합니다.
+    DSC의 빈도분석 결과는?
+    
+    
+4. 다음은 2011-2012년 미국 질병관리본부에서 조사한 국가보건영양검사 중 인체측정 데이터입니다.
+    
+    + 성인이 되기 전 즉, 19세 미만을 골라 연령별 남아와 여자의 평균키와 평균체중을 구하세요.
+
+```{r}
+exam4 <- read.csv("https://scholar.harvard.edu/files/gerrard/files/nhanes_body.txt")
+head(exam4)
+```
+
+5. 어느 연구자가 우리나라의 지역별 폐교수를 알고자 합니다.
+
+* 2019.4.1일 기준, [시도교육청 별 신설학교 현황](http://www.eduinfo.go.kr/portal/theme/newSchStatusPage.do)에서 확인하실 수 있습니다.
+
+하지만 폐교의 상세정보를 한번에 확인하는데 어려움이 있습니다.
+
+![](G:/view_infograph_15.jpg){width=50%}
+
+* 위의 유사하게 인포그래픽스와 같이 2016년부터 2018년까지 발생한 폐교학교를 확인하고자 합니다.
+
+    +2016년 공시대상학교정보와 2016년 공시대상학교정보를 이용하여 2016년과 2019년 사이에 폐교학교의 수를 구하세요.
+    
+
+## 위의 문제는 순서대로 풀어서 풀이의 R코드를 [이메일: statstar@daegu.ac.kr](statstar@daegu.ac.kr)로 제출해주시면 됩니다.
