@@ -1,0 +1,294 @@
+---
+title: "KERIS barplot"
+author: "Sanghoo Yoon"
+date: "2019년 10월 30일"
+output: html_document
+---
+
+## R 설치하기 
+
+* R 프로그램 : https://cran.r-project.org/
+
+* R studio 프로그램 : https://www.rstudio.com/products/rstudio/download/
+
+***
+
+# 막대그림
+
+기본적인 사용법은 아래의 사이트를 참고하여 제작하였습니다.
+
+### 참고 : https://www.statmethods.net/graphs/bar.html
+
+* 막대그림을 그리기 위해선 <font color="red">barplot</font>이라는 함수에 그리는 **숫자의 벡터**를 입력하면 됩니다. 
+
+```{r}
+
+counts <- table(mtcars$gear)
+counts
+barplot(counts, main="Car Distribution", xlab="Number of Gears") 
+```
+
+여기서 <font color="blue">main</font>은 함수의 제목을 다는 parameter이고, <font color="blue">xlab</font>은 x축의 이름을 다는 parameter이다. 
+
+**문자를 입력**하기 위해선 `' 또는 ""가 사용됨을 주의하자. 
+
+만약 막대그림을 **옆으로** 그리고 싶다면 <font color="blue">horiz=TRUE</font>을 추가하면 된다.
+
+<font color="blue">names.arg</font>는 원하는 이름을 값에 입력해준다. 
+
+```{r}
+
+counts <- table(mtcars$gear)
+barplot(counts, main="Car Distribution", xlab="Number of Gears", horiz=TRUE,
+        names.arg=c("3 Gears", "4 Gears", "5 Gears")) 
+```
+
+만약 **벡터**가 아닌 **행렬** 자료가 입력된다면 어떻게 될까?
+
+행렬은 여러개의 벡터가 합쳐진 형태이므로 x 축에 해당하는 값에 누적된 그림이 그려진다. 
+
+여러개의 자료가 한꺼번에 그림에 그려지므로 <font color="blue"> legend </font>를 사용하여 값들을 구분하고,
+
+<font color="blue">col </font>로 **색상을 지정**해주면 보기 좋은 그림이 그려진다. 
+
+```{r}
+counts <- table(mtcars$vs, mtcars$gear)
+counts
+barplot(counts, main="Car Distribution by Gears and VS",
+        xlab="Number of Gears", col=c("darkblue","red"),
+        legend = rownames(counts)) 
+```
+
+범례가 0과 1로 표현되어 맘에 들지 않거나, <font color="blue"> names.arg</font>를 사용하기 싫다면
+
+생성된 행렬의 행<font color="blue">row.names()</font>과 열<font color="blue">colnames()</font>에 이름을 줄 수 있다.
+
+```{r}
+counts <- table(mtcars$vs, mtcars$gear)
+row.names(counts)=c("FS","RS")
+colnames(counts)=c("3 Gears", "4 Gears", "5 Gears")
+counts
+barplot(counts, main="Car Distribution by Gears and VS",
+        xlab="Number of Gears", col=c("darkblue","red"),
+        legend = rownames(counts)) 
+```
+
+누적된 막대도표가 아니라 **옆으로 생성된 막대**가 보고 싶다면 <font color="blue"> beside</font> parameter를 주면 된다.
+
+물론, legend에 들어가는 값을 c()를 이용하여 **직접 입력**해도 된다.
+
+```{r}
+counts <- table(mtcars$vs, mtcars$gear)
+barplot(counts, main="Car Distribution by Gears and VS",
+        xlab="Number of Gears", col=c("darkblue","red"),
+        legend = c("FS","RS"), beside=TRUE)
+```
+
+기본적으로 수평의 막대도표의 이름은 **수직**으로 표현된다. 이를 **수평**으로 만들싶다면 <font color="blue">par(las=2)</font>를 사용하자.
+
+```{r}
+counts <- table(mtcars$gear)
+barplot(counts, main="Car Distribution", horiz=TRUE, names.arg=c("3 Gears", "4 Gears", "5   Gears"), cex.names=0.8)
+```
+
+```{r}
+par(las=2) 
+barplot(counts, main="Car Distribution", horiz=TRUE, names.arg=c("3 Gears", "4 Gears", "5   Gears"), cex.names=0.8)
+```
+
+여기까지는 숫자로 구성된 **벡터**와 **행렬**를 막대도표로 그리는 방법이다. 
+
+***
+
+이제 <font color="red">barplot</font>의 상세 사용법에 대해 알아보자. 
+
+아래는 2018 서울 구별 아파트 평균가격이다. 
+
+![](http://www.consumerpost.co.kr/news/photo/201807/200976_101449_2615.png)
+
+위 자료를 사용하여 막대도표를 그려보자. 
+
+```{r}
+apt <- c(14.6,10.6,7.9,6.9,6.5)
+barplot(apt, names.arg = c("강남구","송파구","광진구","마포구","중구"),
+        main="2018 서울 구별 아파트 평균가격 Top5", col="darkred")
+```
+
+그림과 비슷하지만 숫자가 그림에 표현되지 않아 가독성이 떨어진다. 
+
+이제 <font color="blue"> text</font> 함수를 이용하여 숫자를 같이 출력하자.
+
+**여기서 주의해야할 부분은 barplot을 저장하여 다시 사용**해야 원하는 위치에 숫자가 들어간다. 
+
+추가로 <font color="blue">ylim</font>를 통해 **숫자가 들어갈 여유공간**을 주자.
+
+```{r}
+apt <- c(14.6,10.6,7.9,6.9,6.5)
+barp<-barplot(apt, names.arg = c("강남구","송파구","광진구","마포구","중구"),
+        main="2018 서울 구별 아파트 평균가격 Top5", col="darkred", ylim=c(0,16))
+barp
+text(barp, apt+1, labels=apt)
+```
+
+<font color="blue">width</font>는 **폭**이란 뜻이므로 width를 사용하면 barplot을 조금 더 과장해서 그릴 수 있다. 
+
+```{r}
+apt <- c(14.6,10.6,7.9,6.9,6.5)
+barp<-barplot(apt, names.arg = c("강남구","송파구","광진구","마포구","중구"),
+        main="2018 서울 구별 아파트 평균가격 Top5", col="darkred", ylim=c(0,16),
+        width=apt)
+barp
+text(barp, apt+1, labels=apt)
+```
+
+<font color="blue">space</font>는 막대와 막대 사이의 **거리**를 조정해준다.
+
+```{r}
+apt <- c(14.6,10.6,7.9,6.9,6.5)
+barp<-barplot(apt, names.arg = c("강남구","송파구","광진구","마포구","중구"),
+        main="2018 서울 구별 아파트 평균가격 Top5", col="darkred", ylim=c(0,16),
+        width=apt, space=2)
+barp
+text(barp, apt+1, labels=apt)
+```
+
+<font color="blue">space</font>는 행렬자료의 막대도표를 그릴 때, 아주 효과적이다. 
+
+```{r}
+counts <- table(mtcars$vs, mtcars$gear)
+counts
+barplot(counts, main="Car Distribution by Gears and VS",
+        xlab="Number of Gears", beside=TRUE,
+        legend = rownames(counts), space = c(0.2, 1))  
+```
+
+<font color="blue">density</font>는 **밀도**를 의미하고 이 모수가 사용되면 사선을 통해 음영이 표현된다. 
+
+<font color="blue">angle=135</font>를 추가하면 사선의 **각도** 조정할 수 있다.
+
+```{r}
+apt <- c(14.6,10.6,7.9,6.9,6.5)
+barp<-barplot(apt, names.arg = c("강남구","송파구","광진구","마포구","중구"),
+        main="2018 서울 구별 아파트 평균가격 Top5", col="darkred", ylim=c(0,16),
+        width=apt, density=5)
+barp
+text(barp, apt+1, labels=apt)
+```
+
+색상을 주면 훨씬 효율적으로 전달할 수 있다. 
+
+<font color="blue">border </font>를 사용해서 막대 주변색도 지정할 있다.
+
+```{r}
+apt <- c(14.6,10.6,7.9,6.9,6.5)
+barplot(apt, names.arg = c("강남구","송파구","광진구","마포구","중구"),
+        main="2018 서울 구별 아파트 평균가격 Top5", ylim=c(0,16),
+        width=apt, col=rainbow(length(apt)), border="gold")
+```
+
+<font color="blue">axes</font>는 **축**을 의미하고 이 parameter를 FALSE로 설정하면 축이 표현되지 않는다.
+
+```{r}
+apt <- c(14.6,10.6,7.9,6.9,6.5)
+barplot(apt, names.arg = c("강남구","송파구","광진구","마포구","중구"),
+        main="2018 서울 구별 아파트 평균가격 Top5", axes=FALSE)
+```
+
+기본적으로 *cex*는 **문자나 모양의 크기**를 지정하는데 사용된다. 
+
+따라서 <font color="blue">cex.axis</font>를 하용하면 축의 label를 크게 표현 할 수 있다. 
+
+아래 사이트를 참고하면 cex.lab, cex.main, cex.sub 의 parameter가 무엇인지 짐작할 수 있다. 
+
+* http://rfunction.com/archives/2154
+
+```{r}
+apt <- c(14.6,10.6,7.9,6.9,6.5)
+barplot(apt, names.arg = c("강남구","송파구","광진구","마포구","중구"),
+        main="2018 서울 구별 아파트 평균가격 Top5", cex.axis=1.5)
+```
+
+
+여기까지 막대도표의 다양한 사용방법대해 배웠다. 
+***
+
+**아래 그림은 흥미롭게도 가격이 올라간 지역와 떨어진 지역이 모두 있다. 이것도 barplot으로 표현될까?**
+
+![](http://image.newdaily.co.kr/site/data/img/2019/07/18/2019071800141_1.gif)
+
+
+***
+2018 서울 구별 아파트 가격을 음수처리하면 밑으로 그려지므로 크게 문제될 건 없다.
+
+```{r}
+apt <- c(14.6,10.6,7.9,6.9,6.5)
+barplot(-apt, names.arg = c("강남구","송파구","광진구","마포구","중구"),
+        main="2018 서울 구별 아파트 평균가격 Top5", col="darkred")
+```
+
+## 2019년 지역별 아파트 전세 재계약비용 그래프를 직접 입력하여 그려보세요.
+
+![](http://contents.dt.co.kr/images/201901/2019012802109958053004.jpg)
+
+위의 도표는 OECD 주요국 가계소득 증가현황입니다. 
+
+막대도표로 그려볼까요?
+
+```{r}
+par(las=2)
+data <- rev(c(3.74,2.46,2.41,2.37,1.88,1.77,1.71,1.50,1.43,1.39,0.96))
+name <- rev(c("라트비아","슬로바키아","헝가리","한국","캐나다","미국","영국","프랑스","독일","스위스","일본"))
+col1 <- ifelse(name=="한국","navyblue","lightblue")
+bar1<-barplot(data, horiz=T, names.arg=name, col=col1, cex.names = 0.7, border="white", ylim=c(0.3,13),
+              main="OECD 주요국 가계소득 증가 현황", axes=F)
+text(data+0.15, bar1, labels=data)
+text(3.74-0.15, 12.7, labels=3.74)
+text(data[name=="한국"]+0.15, bar1[name=="한국"], labels=2.37, col="red")
+abline(v=1.93, lty=2)
+```
+
+
+![](http://ibonita.org/wp-content/uploads/%EC%9D%B8%ED%8F%AC2_1994_2014%EB%85%84-1%EC%9D%B8%EB%8B%B9-%EC%9D%B4%EC%82%B0%ED%99%94%ED%83%84%EC%86%8C-%EB%B0%B0%EC%B6%9C%EC%A6%9D%EA%B0%80%EB%A5%A0.jpg)
+
+위의 그림은 1994-2014 1인당 이산화탄소 배출증가율입니다.
+
+이것도 막대도표로 그려볼까요?
+
+그림을 그리기 위해선 서로다른 두개의 막대도표를 그리고 이를 합쳐야 합니다. 
+
+먼저 각각의 막대도표를 그려보겠습니다.
+
+그리고 안에 들어가는 숫자와 %는 <font color="red"> paste0 </font>로 생성하겠습니다. 
+
+편의상 색상은 하나로 통일합니다.
+
+합치기 위해선 <font color="red">par(new=T)</font>를 추가하고, ***barplot의 범위를 동일***하게 설정해주면 됩니다.
+
+```{r}
+data1 <- rev(c(-47.7,-41.3,-41.1,-38.3))
+data2 <- rev(c(108.3,90.4,73.8,22))
+
+name1 <- rev(c("슬로바키아","에스토니아","룩셈부르크","덴마트"))
+name2 <- rev(c("대한민국", "칠레", "터키", "멕시코"))
+
+lab1 <- paste0(data1,"% ", name1)
+lab2 <- paste0(name2," ",data2,"%")
+
+lab1
+lab2
+
+bar1<-barplot(data1, horiz=T, col="burlywood2", axes=F, border="white")
+text(data1+7,bar1,labels=lab1, col="darkcyan", cex=1.3)
+bar2<-barplot(data2, horiz=T, col="darkcyan",  axes=F, border="white")
+text(data2-13,bar2,labels=lab2, col="burlywood2", cex=1.3)
+
+bar1<-barplot(data1, horiz=T, col="burlywood2", axes=F, border="white", xlim=c(-50,110),
+              main="1994-2014년 1인당 이산화탄소 배출증가율", cex.main=2)
+text(data1+13,bar1,labels=lab1, col="darkcyan", cex=1)
+par(new=T)
+bar2<-barplot(data2, horiz=T, col="darkcyan",  axes=F, border="white", xlim=c(-50,110))
+text(data2-13,bar2,labels=lab2, col="burlywood2", cex=1)
+```
+
+
+![](http://www.safetimes.co.kr/news/photo/201805/65735_36774_126.png)
