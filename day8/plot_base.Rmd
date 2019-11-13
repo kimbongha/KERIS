@@ -1,0 +1,301 @@
+---
+title: "Plot"
+author: "Sanghoo Yoon"
+date: "2019년 11월 13일"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+[R Graphics cookbook](http://www.cookbook-r.com/Graphs/)
+
+
+![](https://covers.oreillystatic.com/images/0636920023135/lrg.jpg)
+
+## Plot을 이용한 그림
+
+* plot()을 기본적으로 R에서 그림을 그리는 함수이다. 
+
+* 기본적인 사용은 plot(x,y)이고 여기서 x는 x좌표, y는 y좌표이다. 
+
+* 추가의 인자(parameter)를 통해 그림을 더욱 풍성하게 만들 수 있다. 
+
+* 이제 임의의 자료를 생성하여 plot의 다양한 사용법에 대해 배워보자. 
+
+```{r}
+x1 <- 1:5
+y1 <- x1^2
+z1 <- 5:1
+
+# 행렬 생성
+mat1 <- cbind(x1, y1, z1)
+```
+
+- 위 코드에서 x1, y1, z1은 수치형 벡터이고 mat1은 행렬이다. 
+
+이제 plot을 통해 위의 자료를 그려보면 아래와 같다.
+
+```{r}
+plot(y1, main="using index")
+plot(x=z1, y=y1, main="x^2")
+plot(mat1, main="using matrix")
+```
+
+- plot에 수치형 벡터를 넣으면 순서대로 자료가 그려진다.
+
+- 하지만 x축과 y축에 매칭되는 벡터를 넣으면 (x,y)좌표에 점이 찍히게 된다. 
+
+- 행렬을 넣을 경우 R에서는 첫번째와 두번째 열을 선택하여 그림을 그린다.
+
+### type parameter 
+
+- plot에 type 인자를 사용하면 그림의 표현방법이 달라진다.
+
+- "p"는 점으로 "l"은 선으로 표현한다.
+
+- 그 외에 "b", "c", "o", "s", "S", "h", "n"이 있다.
+
+```{r}
+plot(x1, y1, type= "p" , main="point") # default
+plot(x1, y1, type= "l" , main="line")
+plot(x1, y1, type = "b")
+plot(x1, y1, type = "c")
+plot(x1, y1, type = "o")
+plot(x1, y1, type = "s")
+plot(x1, y1, type = "S")
+plot(x1, y1, type="h")
+plot(x1, y1, type="n")
+```
+
+
+### pch parameter
+
+- pch는 점의 모양을 결정한다.
+
+- ?pch 를 통해 숫자에 따른 점의 모양을 선택할 수 있다. 
+
+- 예를 들어 1:25까지의 점의 모양을 plot으로 그리면 다음과 같다.
+
+- 정해진 모양이 아니라 영어, 한글, 숫자 등을 문자형으로 직접 입력할 수 있다. 
+
+```{r}
+plot(1:5, type = "n", xlim = c(0, 7.5), ylim = c(0.5, 5.5), main = "points by 'pch'")
+points(1:5, rep(2,5), pch = 1:5, cex = 1.5)
+text(1:5 , rep(2,5)-0.5, labels = as.character(1:5), cex = 1.2)
+
+pchs <- c("&", "z", "Z", "1", "가")
+points(1:5, rep(5,5), pch = pchs, cex = 1.5)
+```
+
+### lty paramter
+
+- lty는 선의 모양을 결정한다.
+
+- lines()함수와 함께 사용시 plot() 그림에 추가로 선을 넣을 수 있다. 
+
+- lines()함수는 plot(, type="l")과 같으므로 type을 함수에 표시하지 않아도 된다.
+
+- 숫자 대신 "blank", "solid", "dashed", "dotted", "dotdash", "longdash","twodash"를 줘도 된다.
+
+- 만약 lty에 "33", "24", "F2", "2F","3313", "F252","FF29"와 같은 숫자를 넣으면 점와 간격을 임의로 조정할 수 있다.
+
+```{r}
+plot(x1, y1, type="l", lty=1)
+plot(x1, y1, type="l", lty=2)
+
+plot(x1, y1, type="n")
+lines(x1, rep(4,5), lty=3)
+lines(x1, rep(8,5), lty=4)
+lines(x1, rep(12,5), lty=5)
+lines(x1, rep(16,5), lty=6)
+
+lines(x1, rep(20,5), lty="dashed")
+
+lines(x1, rep(22.5,5), lty="99")
+lines(x1, rep(25,5), lty="5515")
+```
+
+### abline()함수
+
+- plot에 수직선, 수평선을 추가로 그려보자.
+
+- 특정 값 이상 등으로 자료를 구분하는 구분선을 넣을 때 주로 사용된다. 
+
+- abline(h=20)은 y가 30인 수평선을, abline(v=20)은 x 가 20인 수직선을 추가한다.
+
+- 만약 a, b를 사용하면 기울기있는 직선을 추가한다. 
+
+```{r}
+head(cars)
+plot(cars$speed, cars$dist, main = "abline")
+
+# horizontal
+abline(h = 30)
+
+# vertical
+abline(v = 20, col="blue")
+
+# y = a + bx
+abline(a = 10, b = 4, col="red")
+```
+
+### rect()함수
+
+- 사각형을 그림에 추가하는 그림이다. 
+
+- 사각형의 왼쪽 아래, 오른쪽 위의 좌표를 연속해서 넣으면 된다. 
+
+- col, border, density, angle, lwd, lty 인자를 통해 사각형의 형태를 원하는대로 커스터마이징 할 수 있다.
+
+- 위에서 사용되는 parameter는 plot에 전반적으로 사용되는 인자이니 잘 알아 두자.
+
+```{r}
+plot(1:10, type = "n", main = "rect", xlab = "", ylab = "")
+
+rect(1, 4, 3, 6, col = "gold") # col parameter
+rect(1, 1, 3, 3, border = "gold") # border parameter
+rect(4, 7, 6, 9, density = 10) # density parameter
+rect(4, 4, 6, 6, density = 10, angle = 315) # angle parameter
+rect(7, 7, 9, 9, lwd = 2) # lwd parameter
+rect(7, 4, 9, 6, lty = 2) # lty paramter
+```
+
+### text()함수
+
+- text()함수는 plot에 문자를 추가하는 함수이다. 
+
+- 원하는 x와 y좌표를 입력 후 labels에 문자형으로 글을 넣으면 된다. 
+
+- expression과 함께 사용 시 수식을 넣을 수 있다. 
+
+- pos를 인자룔 사용시 특정위치를 중심으로 상하좌우에 글을 넣는다.
+
+- offset은 pos와 함께 사용되며 pos의 떨어지는 정도를 결정한다.
+
+- pos, offset 대신 x축과, y축에 임의의 숫자를 빼도 괜찮다.
+
+
+```{r}
+plot(1:10, 1:10, type = "n", xlab = "", ylab = "", main = "text")
+text(1.5, 9, adj = 0, labels = "피타고라스의 정리(定理)")
+
+# Example expression labels
+text(1.5, 8, adj = 0, labels = expression(c^2 == a^2 + b^2))
+text(1.5, 6, adj = 0, labels = expression(cos(r^2) * e^{-r/6}))
+text(2, 3, adj = 0.3, labels = expression(z[i] == sqrt(x[i]^2 + y[i]^2)))
+text(9, 4, adj = 1, labels = expression(f(x) == frac(1, sqrt((2 *
+       pi)^n ~ ~det(Sigma[x]))) ~ ~exp * bgroup("(", -frac(1, 2) ~ ~(x -
+       mu)^T * Sigma[x]^-1 * (x - mu), ")")))
+text(5, 5, adj = 0.5, labels = expression(y == bgroup("(", atop(a ~ ~b, c ~ ~d), ")")))
+
+# Example position by pos
+points(8, 8, pch = 16)
+text(8, 8, "position1", pos = 1)
+text(8, 8, "position2", pos = 2)
+text(8, 8, "position3", pos = 3)
+text(8, 8, "position4", pos = 4)
+
+# Example offset
+points(8, 6, pch = 16)
+text(8, 6, "offset1", pos = 1, offset = 1)
+text(8, 6, "offset2", pos = 2, offset = 1.5)
+text(8, 6, "offset3", pos = 3, offset = 2)
+text(8, 6, "offset4", pos = 4, offset = 2.5)
+```
+
+### legend()함수
+
+- 그림의 선과 점이 무엇을 의미하는지 설명하기 위해선 범례가 필요하다.
+
+- 범례는 legend()함수로 그리며 넣고자 하는 위치를 지정 후, title과 legend를 통해 원하는 내용을 입력한다.
+
+```{r}
+plot(1:10, type = "n", xlab = "", ylab = "", main = "legend")
+legend("bottomright", legend="pch 1", pch = 1, title = "bottomright")
+legend("bottom",  legend="pch 2",pch = 2, title = "bottom")
+legend("bottomleft",  legend="pch 3",pch = 3, title = "bottomleft")
+legend("left",  legend="pch 4", pch = 4, title = "left")
+legend("topleft", legend="pch 5",pch = 5, title = "topleft")
+legend("top", legend="pch 6", pch = 6, title = "top")
+legend("topright", legend="pch 7",pch = 7, title = "topright")
+legend("right",legend="right" ,pch = 1)
+legend("center",legend="center" , pch = 1)
+
+legends <- c("Legend1", "Legend2")
+legend(3, 8, legend = legends, pch = 1:2, col = 1:2)
+legend(7, 8, legend = legends, pch = 1:2, col = 1:2, lty = 1:2)
+legend(3, 4, legend = legends, fill = 1:2)
+legend(7, 4, legend = legends, fill = 1:2, density = 30)
+```
+
+### axis()함수
+
+- 축을 내가 원하는 데로 수정할때는 axis()함수를 이용하자.
+
+- plot()에서 axes=FALSE를 사용하면 축을 제외하고 그림을 그린다.
+
+- side는 아래쪽, 왼쪽, 위쪽, 오른쪽 순으로 숫자가 들어간다.
+
+- at과 labels를 통해 원하는 위치에 원하는 글을 넣을 수 있다.
+
+- 이때 at과 labels을 구성하는 벡터의 길이는 같아야 한다.
+
+```{r}
+plot(1:5, type = "l", main = " axis", axes = FALSE, xlab = "", ylab = "")
+
+axis(side = 1, at = 1:5, labels = 5:1, line = 2)
+axis(side = 2, tick = F, col.axis = "blue")
+axis(side = 3, at = c(1, 3, 5), col = "blue", col.axis = "red")
+axis(side = 4, lty = 2, lwd = 2)
+```
+
+### layout()함수
+
+- 하나의 그림에 여러 그림을 넣고 싶다면 layout()함수를 그림을 그리기 전에 사용해보자.
+
+- matrix로 그림에 글어가는 창(window)를 설정 후 그림을 그리면 순서대로 그림이 들어간다.
+
+- 주의 : 이후의 그림은 layout에 영향을 받으므로 par(no.readonly = TRUE) 를 사용하여 초기화 하자.
+
+```{r}
+m <- matrix(c(1, 1, 2, 3), ncol = 2, byrow = T)
+m
+
+layout(mat = m)
+plot(cars, main = "scatter plot of cars data", pch = 19, col = 4)
+hist(cars$speed)
+hist(cars$dist)
+```
+```{r eval=FALSE}
+par(no.readonly = TRUE)
+```
+
+### overlay 그림 그리기
+
+- par(new=T)를 사용하면 그림을 겹쳐 그릴 있다.
+
+- 이 경우 x축과 y축의 값을 고려하지 않고 그림을 추가시키므로 xlim과 ylim을 통해 크기를 고정시킨 후 겹쳐그리자.
+
+- 또한 xlab, ylab도 한쪽의 그림에서 ""으로 설정하여 그림을 지저분하게 만들지 말자.
+
+```{r}
+plot(1:5, type = "l")
+par(new = F)
+plot(10:1, type = "s", main = "plot by new = F")
+
+plot(1:5, type = "l")
+par(new = T)
+plot(10:1, type = "s", main = "plot by new = T")
+
+plot(1:5, type = "l", xlim=c(1,10), ylim=c(1,10))
+par(new = T)
+plot(10:1, type = "s", xlim=c(1,10), ylim=c(1,10))
+
+
+x <- rnorm(10)
+plot(x)
+par(new = T)
+hist(x)
+

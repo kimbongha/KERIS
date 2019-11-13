@@ -1,0 +1,181 @@
+---
+title: "Histogram"
+author: "Sanghoo Yoon"
+date: "2019년 11월 13일"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+* layout에 widths와 heights를 주면 폭과 높이를 조정할 있습니다. 
+```{r}
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE), widths=c(3,1), heights=c(1,2))
+hist(mtcars$wt)
+hist(mtcars$mpg)
+hist(mtcars$disp)
+```
+
+
+# 히스토 그램 
+
+## Simple Histogram
+
+* hist()함수에 숫자로 된 벡터를 넣어주면 된다.
+
+```{r}
+hist(mtcars$mpg)
+```
+
+* 만약 원하는 수의 계급으로 나누어 그리고 싶다면 breaks를 넣으면 된다.
+
+```{r}
+hist(mtcars$mpg, breaks=12, col="red")
+```
+
+* Sturges 공식으로 적절한 계급의 수를 구할 수 있다. 
+
+```{r}
+class.n <- ceiling(log(length(mtcars$mpg), base = 2) +1 )
+class.n
+```
+
+* 또는, seq()함수의 length.out을 통해 원하는 구간을 등간격으로 만들 수 있다. 
+
+* nclass는 breaks와 동일하다.
+
+```{r}
+breaks=seq(min(mtcars$mpg), max(mtcars$mpg), length.out=12)
+breaks
+
+hist(mtcars$mpg, breaks = class.n, main = "breaks = class.n")
+hist(mtcars$mpg, breaks = breaks, main = "breaks = breaks")
+hist(mtcars$mpg, nclass = 14, main = "nclass = breaks")
+```
+
+* 만약 도수분포표가 만들고 싶다면?
+
+* 아래의 cut() 함수를 이용하자. 
+
+* cut()는 최소값은 포함하지 못하므로 breaks의 최소값을 조금 수정해주자.
+
+```{r}
+breaks[1]=breaks[1]-0.5
+
+freq.mpg<-cut(mtcars$mpg, breaks=breaks)
+table(freq.mpg)
+```
+
+* 만약 빈도가 아니라 확률을 그리고 싶다면 probability=TRUE 를 넣어주자. 
+
+* 그러면 빈도가 아닌 확률이 히스토그램으로 그려진다. 
+
+```{r}
+hist(mtcars$mpg, probability=TRUE)
+```
+
+## 정규분포선과 히스토그램
+
+* 정규분포를 따르는 자료의 확률을 dnorm()함수를 통해 구할 수 있다.
+
+* 여기서 자료의 평균과 표준편차가 들어간다. 
+
+* 이를 hist()와 함께 그리면 히스토그램에서 구한 자료가 정규분포를 따라는지 시각적으로 확인할 수 있다.
+
+* hist에 probability=TRUE를 꼭 표시해야한다.
+
+```{r}
+g <- mtcars$mpg
+h <- hist(g, breaks = 10, col = "lightgray", 
+          xlab = "Accuracy", main = "Overall", probability=TRUE) 
+
+xfit <- seq(min(g), max(g), length = 40) 
+yfit <- dnorm(xfit, mean = mean(g), sd = sd(g)) 
+
+lines(xfit, yfit, col = "blue", lwd = 2)
+```
+
+* 빈도에 대해서 그리고 싶다면 yfit 즉 확률값 자료의 숫자인 length()를 곱해주어야 한다.
+
+* 추가로 히스토그램의 계급의 범위는 항상 1일 아니므로 diff(h$mids[1:2])를 통해 계급의 범위를 계산하여 yfit에 추가로 곱해주자.
+
+```{r}
+g <- mtcars$mpg
+h <- hist(g, breaks = 10,
+          col = "lightgray", xlab = "Accuracy", main = "Overall") 
+
+
+
+xfit <- seq(min(g), max(g), length = 40) 
+yfit <- dnorm(xfit, mean = mean(g), sd = sd(g)) 
+yfit <- yfit * diff(h$mids[1:2]) * length(g) 
+
+lines(xfit, yfit, col = "red", lwd = 2)
+```
+
+## Challenge  1
+ 
+```{r echo=FALSE}
+plot(5,3, type="n", xlim=c(0,6), ylim=c(0,8), xlab="x축",ylab="y축", main="학번 : ")
+abline(v=0, col="red")
+abline(h=6, col="darkgreen", lty=2)
+abline(0,1, col="blue")
+points(5,3, pch=16, cex=2)
+text(5,3, pos=4, labels=c("(5,3)"))
+```
+
+## Challenge  2
+
+아래의 x1, y1, y2, y3를 이용하여 다음 그림을 그리세요.
+
+* tip : legend 함수에 pch와 lty를 모두 사용하세요.
+```
+x1<- 1:10
+y1<- 1:10
+y2<- c(rep(1,5),2:6)
+y3<- c(rep(10,5),9:5)
+```
+
+```{r echo=FALSE}
+x1<- 1:10
+
+y1<- 1:10
+y2<- c(rep(10,5),9:5)
+
+plot(x1, y1, type="l", xlab="x axis",ylab="y axis", main="학번 : ")
+lines(x1, y2, type="o", pch=15)
+
+abline(h=5.5, col="blue", lty=2)
+rect(1,6,4,9, col="gold", density=30, angle=180)
+legend("bottomright", legend=c("Line 1","Line 2"), pch=c(NA,15), lty=1)
+
+```
+
+## Challenge 3
+
+태국 방콕을 여행하고 싶은 사람이 있어 기후를 조사했더니 다음과 같습니다.
+
+아래 그림과 비슷한 그림을 그리세요.
+
+* 마지막의 강수량과 기온 자료를 그림에 표기하지 마세요!!
+
+![](http://mblogthumb4.phinf.naver.net/MjAxNzExMTBfMTkz/MDAxNTEwMzE0NzAyMzU5.RSE7cFjMknew-Kk6VNjDvzhjKlhGnH1m6c2n_2WYCvUg.k2QKvxsZJ856yJWRlLtfpk_Ut-ocAHV-7Io8pOCwM04g.PNG.dkdkong/%EB%B0%A9%EC%BD%95.png?type=w2)
+
+## Challenge 4
+
+R에 내장된 airquality자료로 다음을 그리세요.
+```{r}
+head(airquality)
+```
+
+```{r echo=FALSE}
+par(mfrow=c(2,2))
+hist(airquality$Ozone)               # top left plot
+plot(Wind~Temp, data=airquality)           # top right plot
+boxplot(Temp~Month, data=airquality)       # bottom left plot
+hist(airquality$Temp)                # bottom right plot
+```
+
+
+
