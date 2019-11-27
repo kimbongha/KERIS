@@ -1,0 +1,88 @@
+---
+title: "Untitled"
+author: "Sanghoo Yoon"
+date: "2019년 11월 27일"
+output: html_document
+---
+
+# 구글 지도를 이용한 시각화
+
+```{r}
+library(readxl)
+stat <- read_excel("F:/work/2019/강의/빅데이터시각화/station_list.xls")
+stat <- as.data.frame(stat)
+dim(stat)
+```
+
+대기오염 관측소의 위치를 시각화 하기 위해 [에어코리아](https://www.airkorea.or.kr/)에 접속하여 대기관측소의 위치자료를 다운 받았다.
+
+xls 파일로 자료가 제공되어 ```readxl``` 팩키지의 ```read_excel```함수를 통해 자료를 불러왔다.
+
+불러온 자료의 대기오염관측소의 수는 398곳이나 주소가 제공되어 관측소의 위도, 경도의 지리적 정보를 확인할 수 없다.
+
+이 경우 위도 경도를 어떻게 구할 수 있을까?
+
+## ggmap 패키지로 구글 지도 API를 이용한 데이터 시각화
+
+ggmap 패키지의 get_map()함수와 ggmap()함수를 이용하여 여러 종류의 지도를 불러올 수 있다. 
+
+또한 geocode()함수와 mutate_geocode() 함수를 통해 주소의 위도와 경도를 받을 수 있다.
+
+하지만 **구글 지도 API**를 등록해야 사용할 수 있다.
+
+본 수업시간에는 구글지도 API를 등록하는 방법과 사용하는 방법을 다룬다.
+
+## google map 인증키 발급 받기
+
+1. [Google maps platform](https://cloud.google.com/maps-platform/)에 접속한 후 시작하기를 누릅니다.
+
+   - 모두 선택한 후 계속을 누릅니다.
+   
+2. 새 프로젝트를 선택한 후 이름을 넣어줍니다. 예) Rvisualization
+
+3. 결재하기 
+
+2018년부터 Google은 지도를 이용하는 양에따라 돈을 받고 있어, 카드 결재를 해야만 이용할 수 있습니다.
+
+하지만 매달 $200 free gift가 있으므로 적은 양을 사용하는 사용자에게 불이익은 없습니다.
+
+수업의 편리성을 위해 제 key를 사용하겠습니다.
+
+```{r}
+library(ggmap)
+
+register_google("AIzaSyB_DV5gxNj4NpdwfZL9zJbZL-kySQfg2fc") #다음주까지만 사용 가능합니다. 
+
+geocode("대구대학교")
+
+data.frame(geocode(stat$...3[3:10])) # 주소를 위도와 경도로
+
+DU <- get_map(location="대구대학교",
+              zoom=14,
+              maptype="roadmap",
+              source="google")
+ggmap(DU)
+
+ggmap(DU) + geom_point(aes(x=128.85, y=35.901), color="blue", size=15)
+
+```
+
+경상북도 대학교의 밀도는?
+
+   1. [경상북도 대학목록](https://ko.wikipedia.org/wiki/%EA%B2%BD%EC%83%81%EB%B6%81%EB%8F%84%EC%9D%98_%EB%8C%80%ED%95%99_%EB%AA%A9%EB%A1%9D)의 대학과 전문대학의 위도와 경도를 생성하세요.
+
+   2. google 지도를 다운 받아, 대학과 전문대학의 위치를 지도위에 시각화 하세요.(전문대학과 대학의 색을 다르게 하세요)
+
+   3. stat_density_2d를 이용하여 학교의 밀도를 지도에 표시하세요.
+   
+## OECE PISA 자료처리 
+
+[OECD PISA](https://www.oecd.org/pisa)
+
+* intsvy 패키지 개발 [intsvy](http://danielcaro.net/r-intsvy/)
+
+* PISA자료는 홈페이지에서 직접 다운로드 받아야 함. (자료의 용량이 커 다운로드 시간이 오래 걸림)
+
+
+
+
